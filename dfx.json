@@ -2,7 +2,8 @@
   "canisters": {
     "Axon": {
       "main": "src/Axon/Axon.mo",
-      "type": "motoko"
+      "type": "motoko",
+      "optimize": "size"
     },
     "AxonTest": {
       "main": "src/Axon/Axon.mo",
