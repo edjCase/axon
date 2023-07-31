@@ -9,30 +9,39 @@
       "type": "motoko"
     },
     "frontend": {
-      "dependencies": ["Axon"],
+      "dependencies": [
+        "Axon"
+      ],
       "frontend": {
         "entrypoint": "src/axon-ui/out/index.html"
       },
-      "source": ["src/axon-ui/out"],
+      "source": [
+        "src/axon-ui/out"
+      ],
       "type": "assets"
-    },"frontendTest": {
-      "dependencies": ["AxonTest"],
+    },
+    "frontendTest": {
+      "dependencies": [
+        "AxonTest"
+      ],
       "frontend": {
         "entrypoint": "src/axon-ui/out/index.html"
       },
-      "source": ["src/axon-ui/out"],
+      "source": [
+        "src/axon-ui/out"
+      ],
       "type": "assets"
     }
   },
   "defaults": {
     "build": {
       "args": "",
-      "packtool": "vessel sources"
+      "packtool": "mops sources"
     },
     "replica": {
       "subnet_type": "system"
     }
   },
-  "dfx": "0.13.1",
+  "dfx": "0.14.3",
   "version": 1
 }

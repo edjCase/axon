@@ -1,0 +1,12 @@
+[dependencies]
+base = "0.9.6"
+itertools = "0.1.2"
+stableBuffer = "https://github.com/skilesare/StableBuffer#v0.2.0"
+stableBuffer_0_2_0 = "https://github.com/skilesare/StableBuffer#v0.2.0"
+map = "8.1.0"
+map_8_1_0 = "https://github.com/ZhenyaUsenko/motoko-hash-map#v8.1.0"
+icrc1 = "0.0.1"
+httpparser = "https://github.com/NatLabs/http-parser.mo#v0.1.2"
+"json.mo" = "0.1.2"
+principal = "https://github.com/aviate-labs/principal.mo#v0.2.6"
+matchers = "https://github.com/kritzcreek/motoko-matchers#v1.3.0"

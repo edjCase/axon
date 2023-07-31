@@ -17,7 +17,7 @@ import Result "mo:base/Result";
 import Time "mo:base/Time";
 import TrieSet "mo:base/TrieSet";
 
-import SB "mo:StableBuffer/StableBuffer";
+import SB "mo:stableBuffer/StableBuffer";
 import Map "mo:map/Map";
 import Set "mo:map/Set";
 
@@ -86,13 +86,25 @@ shared ({ caller = creator }) actor class AxonService() = this {
     _Admins.isAdmin(state_current, p);
   };
 
+  private func assertIsAdmin(p : Principal) {
+    if (not _Admins.isAdmin(state_current, p)) {
+      Debug.trap("Caller must be an admin");
+    };
+  };
+
+  private func assertIsMaster(p : Principal) {
+    if (p != master) {
+      Debug.trap("Caller must be the dao master");
+    };
+  };
+
   // Returns a list of all the admins.
   /**
   * Returns a list of all the admins.
   * @returns {async} {Array<Principal>} - An array containing all the admins.
   */
   public query ({ caller }) func get_admins() : async [Principal] {
-    assert (_Admins.isAdmin(state_current, caller));
+    assertIsAdmin(caller);
     _Admins.getAdmins(state_current);
   };
 
@@ -103,8 +115,7 @@ shared ({ caller = creator }) actor class AxonService() = this {
   * @returns {async} {void}
   */
   public shared ({ caller }) func add_admin(p : Principal) : async () {
-    assert (caller == master);
-    //assert (_Admins.isAdmin(caller));
+    assertIsMaster(caller);
     _Admins.addAdmin(state_current, p, caller);
   };
 
@@ -119,7 +130,7 @@ shared ({ caller = creator }) actor class AxonService() = this {
 
   //update an axon's controller --needed for deleting
   public shared ({ caller }) func updateSettings(canisterId : Principal, manager : Principal) : async () {
-    assert (caller == master);
+    assertIsMaster(caller);
     let controllers : ?[Principal] = ?[canisterId, manager];
 
     await ic.update_settings(({
@@ -142,8 +153,7 @@ shared ({ caller = creator }) actor class AxonService() = this {
   * @returns {async} {void}
   */
   public shared ({ caller }) func update_master(p : Principal) : async () {
-    assert (caller == master);
-    //assert (_Admins.isAdmin(caller));
+    assertIsMaster(caller);
     master := p;
   };
 
@@ -154,8 +164,7 @@ shared ({ caller = creator }) actor class AxonService() = this {
   * @returns {async} {void}
   */
   public shared ({ caller }) func remove_admin(p : Principal) : async () {
-    assert (caller == master);
-    //assert (_Admins.isAdmin(caller));
+    assertIsMaster(caller);
     _Admins.removeAdmin(state_current, p, caller);
   };
 
@@ -297,7 +306,7 @@ shared ({ caller = creator }) actor class AxonService() = this {
  * @returns {async} {Array<Result<Bool, Text>>} - An array of results indicating the success or failure of the upgrade process for each axon.
  */
   public shared ({ caller }) func upgradeProxy() : async [Result.Result<Bool, Text>] {
-    assert (caller == master);
+    assertIsMaster(caller);
     let results = Buffer.Buffer<Result.Result<Bool, Text>>(0);
     Debug.print("trying");
     var tracker = 0;
@@ -645,8 +654,8 @@ shared ({ caller = creator }) actor class AxonService() = this {
  * @param {Nat} floor - The floor value.
  * @returns {async} {Nat} - The amount of accepted cycles.
  */
-  public shared (msg) func recycle_cycles(axonId : Nat, floor : Nat) : async Nat {
-    assert (msg.caller == master);
+  public shared ({ caller }) func recycle_cycles(axonId : Nat, floor : Nat) : async Nat {
+    assertIsMaster(caller);
     let axon = SB.get(state_current.axons, axonId);
     Cycles.accept(Cycles.available());
   };
@@ -682,7 +691,7 @@ shared ({ caller = creator }) actor class AxonService() = this {
   */
   public shared ({ caller }) func create(init : CurrentTypes.Initialization) : async CurrentTypes.Result<CurrentTypes.AxonPublic> {
     // Verify that the caller has the Administrator role
-    assert (_Admins.isAdmin(state_current, caller));
+    assertIsAdmin(caller);
 
     // Verify at least one ledger entry
     assert (init.ledgerEntries.size() > 0);
@@ -704,8 +713,8 @@ shared ({ caller = creator }) actor class AxonService() = this {
       totalStake = 0;
       allProposals = SB.init<CurrentTypes.AxonProposal>();
       activeProposals = SB.init<CurrentTypes.AxonProposal>();
-      delegations_by_owner = Map.new<Principal, Principal>();
-      delegations_by_delegate = Map.new<Principal, Set.Set<Principal>>();
+      delegations_by_owner = Map.new<Principal, Principal>(Principal.hash, Principal.equal, func() : Principal = Principal.fromText("2vxsx-fae"));
+      delegations_by_delegate = Map.new<Principal, Set.Set<Principal>>(Principal.hash, Principal.equal, func() : Principal = Principal.fromText("2vxsx-fae"));
       var lastProposalId = 0;
     };
 
@@ -790,7 +799,9 @@ shared ({ caller = creator }) actor class AxonService() = this {
     );
 
     let delegateSet = switch (Map.get<Principal, Set.Set<Principal>>(axon.delegations_by_delegate, phash, caller)) {
-      case (null) { Set.new<Principal>() };
+      case (null) {
+        Set.new<Principal>(Principal.hash, Principal.equal, func() : Principal = Principal.fromText("2vxsx-fae"));
+      };
       case (?val) { val };
     };
 
@@ -895,7 +906,9 @@ shared ({ caller = creator }) actor class AxonService() = this {
       };
 
       let delegateSet = switch (Map.get<Principal, Set.Set<Principal>>(axon.delegations_by_delegate, phash, caller)) {
-        case (null) { Set.new<Principal>() };
+        case (null) {
+          Set.new<Principal>(Principal.hash, Principal.equal, func() : Principal = Principal.fromText("2vxsx-fae"));
+        };
         case (?val) { val };
       };
 

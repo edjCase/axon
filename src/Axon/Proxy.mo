@@ -28,7 +28,7 @@ import A "./AxonHelpers";
 import Map "mo:map/Map";
 
 import StableTrieMap "mo:StableTrieMap";
-import SB "mo:StableBuffer/StableBuffer";
+import SB "mo:stableBuffer/StableBuffer";
 import httpparser "mo:httpparser/lib";
 import json "mo:json/JSON";
 import AccountIdentifier "mo:principal/AccountIdentifier";
@@ -217,12 +217,21 @@ shared actor class Proxy(owner : Principal) = this {
 
       ignore Array.map<GT.Neuron, Text>(
         list,
-        func(thisItem) : Text {
+        func(thisItem : GT.Neuron) : Text {
 
           let h = HashMap.HashMap<Text, json.JSON>(3, Text.equal, Text.hash);
 
-          h.put("id", #String(debug_show (Option.unwrap(thisItem.id))));
-          h.put("controller", #String(Principal.toText(Option.unwrap(thisItem.controller))));
+          let idText = switch (thisItem.id) {
+            case (null) Debug.trap("Neuron must have an id: " # debug_show (thisItem));
+            case (?val) debug_show (val);
+          };
+          h.put("id", #String(idText));
+
+          let controllerText = switch (thisItem.controller) {
+            case (null) Debug.trap("Neuron must have a controller: " # debug_show (thisItem));
+            case (?val) Principal.toText(val);
+          };
+          h.put("controller", #String(controllerText));
           h.put("kyc_verified", #Boolean(thisItem.kyc_verified));
           h.put("not_for_profit", #Boolean(thisItem.not_for_profit));
           h.put("maturity_e8s_equivalent", #Number(Nat64.toNat(thisItem.maturity_e8s_equivalent)));
@@ -243,7 +252,7 @@ shared actor class Proxy(owner : Principal) = this {
           );
           h.put("dissolve_state_type", #String((switch (Option.get<GT.DissolveState>(thisItem.dissolve_state, #DissolveDelaySeconds(0))) { case (#DissolveDelaySeconds(x)) { "DissolveDelaySeconds" }; case (#WhenDissolvedTimestampSeconds(x)) { "WhenDissolvedTimestampSeconds" } })));
 
-          items.add(json.show(#Object(h)));
+          items.add(json.show(#Object(Iter.toArray(h.entries()))));
 
           return "";
         },
@@ -566,7 +575,7 @@ shared actor class Proxy(owner : Principal) = this {
 
     let all_results = Buffer.Buffer<ICRC1.TransferResult>(1);
 
-    let accruedAccounts = Map.new<Principal, Nat>();
+    let accruedAccounts = Map.new<Principal, Nat>(Principal.hash, Principal.equal, func() : Principal = Principal.fromText("2vxsx-fae"));
 
     for (thisItem in args.vals()) {
       switch (thisItem) {
@@ -633,13 +642,13 @@ shared actor class Proxy(owner : Principal) = this {
               await ICRC1.burn(token, { from_subaccount = null; amount = balance - args.amount; memo = args.memo; created_at_time = args.created_at_time }, args.owner.owner);
 
             } else {
-
+              let amount : Nat = args.amount - balance;
               await ICRC1.mint(
                 token,
                 {
                   args with
                   to = args.owner;
-                  amount = args.amount - balance;
+                  amount = amount;
                   from_subaccount = ?minting_subaccount;
                 },
                 Principal.fromActor(this),
@@ -671,7 +680,7 @@ shared actor class Proxy(owner : Principal) = this {
 
     let thisAxon = axon_service.refreshBalances(axonId, Iter.toArray<(Principal, Nat)>(Map.entries<Principal, Nat>(accruedAccounts)));
 
-    return all_results.toArray();
+    return Buffer.toArray(all_results);
 
   };
 
