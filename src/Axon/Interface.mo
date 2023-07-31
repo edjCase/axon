@@ -299,53 +299,55 @@ module {
   };
 
   public type TimeError = {
-        #TooOld;
-        #CreatedInFuture : { ledger_time : Nat64 };
-    };
+    #TooOld;
+    #CreatedInFuture : { ledger_time : Nat64 };
+  };
 
   public type TransferError = TimeError or {
-        #BadFee : { expected_fee : Nat };
-        #BadBurn : { min_burn_amount : Nat };
-        #InsufficientFunds : { balance : Nat };
-        #Duplicate : { duplicate_of : Nat };
-        #TemporarilyUnavailable;
-        #GenericError : { error_code : Nat; message : Text };
-    };
-
+    #BadFee : { expected_fee : Nat };
+    #BadBurn : { min_burn_amount : Nat };
+    #InsufficientFunds : { balance : Nat };
+    #Duplicate : { duplicate_of : Nat };
+    #TemporarilyUnavailable;
+    #GenericError : { error_code : Nat; message : Text };
+  };
 
   public type Proxy = actor {
     call_raw : shared (Principal, Text, [Nat8], Nat) -> async Result__1_1;
     list_neurons : shared () -> async ListNeuronsResponse;
     manage_neuron : shared ManageNeuron -> async ManageNeuronResponse;
     recycle_cycles : shared (Principal, Nat) -> async Nat;
-    redenominate : shared (Nat, Nat) -> async {#ok:Bool; #err: Text};
+    redenominate : shared (Nat, Nat) -> async { #ok : Bool; #err : Text };
     mint : shared ({
-      to: {owner: Principal; subaccount: ?Blob};
-      amount: Nat;
-      memo: ?Blob;
-      created_at_time: ?Nat64}) -> async {
-        #Ok : Nat;
-        #Err : TransferError;
+      to : { owner : Principal; subaccount : ?Blob };
+      amount : Nat;
+      memo : ?Blob;
+      created_at_time : ?Nat64;
+    }) -> async {
+      #Ok : Nat;
+      #Err : TransferError;
     };
     burn : shared ({
-      from: {owner: Principal; subaccount: ?Blob};
-      amount: Nat;
-      memo: ?Blob;
-      created_at_time: ?Nat64}) -> async {
-        #Ok : Nat;
-        #Err : TransferError;
+      from : { owner : Principal; subaccount : ?Blob };
+      amount : Nat;
+      memo : ?Blob;
+      created_at_time : ?Nat64;
+    }) -> async {
+      #Ok : Nat;
+      #Err : TransferError;
     };
     transfer : shared ({
-      from_subaccount: ?Blob;
-      to: {owner: Principal; subaccount: ?Blob};
-      amount: Nat;
-      memo: ?Blob;
-      created_at_time: ?Nat64}) -> async {
-        #Ok : Nat;
-        #Err : TransferError;
+      from_subaccount : ?Blob;
+      to : { owner : Principal; subaccount : ?Blob };
+      amount : Nat;
+      memo : ?Blob;
+      created_at_time : ?Nat64;
+    }) -> async {
+      #Ok : Nat;
+      #Err : TransferError;
     };
-    sync_policy : () -> async {#ok: Bool; #err: Text};
-    seed_balance : () -> async {#ok: Bool; #err: Text};
+    sync_policy : () -> async { #ok : Bool; #err : Text };
+    seed_balance : () -> async { #ok : Bool; #err : Text };
 
   };
   public type RegisterVote = { vote : Int32; proposal : ?NeuronId };
@@ -432,12 +434,18 @@ module {
     is_admin : shared query Principal -> async Bool;
     ledger : shared query Nat -> async [LedgerEntry];
     mint : shared (Nat, Principal, Nat) -> async Result_4;
-    mint_burn_batch : shared ([{#mint:(Nat, Principal, Nat);#burn:(Nat, Principal, Nat);}]) -> async [Result_4];
+    mint_burn_batch : shared ([{
+      #mint : (Nat, Principal, Nat);
+      #burn : (Nat, Principal, Nat);
+    }]) -> async [Result_4];
     myAxons : shared query () -> async [AxonPublic];
     propose : shared NewProposal -> async Result_3;
     recycle_cycles : shared (Nat, Nat) -> async Nat;
     remove_admin : shared Principal -> async ();
-    refreshBalances : shared (Nat, [(Principal, Nat)]) -> async {#ok:Bool; #err: Error};
+    refreshBalances : shared (Nat, [(Principal, Nat)]) -> async {
+      #ok : Bool;
+      #err : Error;
+    };
     sync : shared Nat -> async NeuronsResult;
     topAxons : shared query () -> async [AxonPublic];
     transfer : shared (Nat, Principal, Nat) -> async Result;
@@ -446,5 +454,5 @@ module {
     upgradeProxy : shared () -> async [Result__1];
     vote : shared VoteRequest -> async Result;
     wallet_receive : shared () -> async Nat;
-  }
-}
+  };
+};

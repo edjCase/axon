@@ -24,7 +24,9 @@ module {
     controller : ?Principal;
     memo : Nat64;
   };
-  public type ClaimOrRefreshNeuronFromAccountResponse = { result : ?NeuronIdResult };
+  public type ClaimOrRefreshNeuronFromAccountResponse = {
+    result : ?NeuronIdResult;
+  };
   public type Command = {
     #Spawn : Spawn;
     #Split : Split;
@@ -201,7 +203,10 @@ module {
   public type RegisterVote = { vote : Int32; proposal : ?NeuronId };
   public type RemoveHotKey = { hot_key_to_remove : ?Principal };
   public type Result = { #Ok; #Err : GovernanceError };
-  public type NeuronIdResult = { #Error : GovernanceError; #NeuronId : NeuronId };
+  public type NeuronIdResult = {
+    #Error : GovernanceError;
+    #NeuronId : NeuronId;
+  };
   public type NeuronResult = { #Ok : Neuron; #Err : GovernanceError };
   public type NeuronInfoResult = { #Ok : NeuronInfo; #Err : GovernanceError };
   public type RewardEvent = {
@@ -246,5 +251,5 @@ module {
     list_proposals : shared query ListProposalInfo -> async ListProposalInfoResponse;
     manage_neuron : shared ManageNeuron -> async ManageNeuronResponse;
     transfer_gtc_neuron : shared (NeuronId, NeuronId) -> async Result;
-  }
-}
+  };
+};
